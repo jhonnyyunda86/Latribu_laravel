@@ -1,5 +1,4 @@
-<!-- Sidebar -->
-<aside class="fixed inset-y-0 left-0 z-50 w-64 bg-[#121619] text-gray-300 flex flex-col justify-between transition-transform duration-300 transform md:translate-x-0 md:static md:h-screen border-r border-[#d4af37]/20"
+<aside class="fixed inset-y-0 left-0 z-50 w-64 bg-[#121619] text-gray-300 flex flex-col justify-between transition-transform duration-300 transform md:translate-x-0 md:sticky md:top-0 md:h-screen border-r border-[#d4af37]/20"
     :class="mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'">
     
     <div class="flex flex-col flex-1 min-h-0">
@@ -44,48 +43,48 @@
                 <span>Menú</span>
             </a>
 
-            <a href="#" 
-               class="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wider text-gray-400 hover:bg-white/5 hover:text-[#d4af37] transition-all duration-200">
+            <a href="{{ route('admin.mesas') }}" 
+               class="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wider transition-all duration-200 {{ request()->routeIs('admin.mesas') ? 'bg-[#d4af37] text-[#121619] shadow-md' : 'text-gray-400 hover:bg-white/5 hover:text-[#d4af37]' }}">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
                 <span>Mesas</span>
             </a>
 
-            <a href="#" 
-               class="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wider text-gray-400 hover:bg-white/5 hover:text-[#d4af37] transition-all duration-200">
+            <a href="{{ route('admin.reservas') }}" 
+               class="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wider transition-all duration-200 {{ request()->routeIs('admin.reservas') ? 'bg-[#d4af37] text-[#121619] shadow-md' : 'text-gray-400 hover:bg-white/5 hover:text-[#d4af37]' }}">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 <span>Reservas</span>
             </a>
 
-            <a href="#" 
-               class="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wider text-gray-400 hover:bg-white/5 hover:text-[#d4af37] transition-all duration-200">
+            <a href="{{ route('admin.pedidos') }}" 
+               class="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wider transition-all duration-200 {{ request()->routeIs('admin.pedidos') ? 'bg-[#d4af37] text-[#121619] shadow-md' : 'text-gray-400 hover:bg-white/5 hover:text-[#d4af37]' }}">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
                 <span>Pedidos</span>
             </a>
 
-            <a href="#" 
-               class="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wider text-gray-400 hover:bg-white/5 hover:text-[#d4af37] transition-all duration-200">
+            <a href="{{ route('admin.usuarios') }}" 
+               class="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wider transition-all duration-200 {{ request()->routeIs('admin.usuarios') ? 'bg-[#d4af37] text-[#121619] shadow-md' : 'text-gray-400 hover:bg-white/5 hover:text-[#d4af37]' }}">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
                 <span>Usuarios</span>
             </a>
 
-            <a href="#" 
-               class="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wider text-gray-400 hover:bg-white/5 hover:text-[#d4af37] transition-all duration-200">
+            <a href="{{ route('admin.reportes') }}" 
+               class="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wider transition-all duration-200 {{ request()->routeIs('admin.reportes') ? 'bg-[#d4af37] text-[#121619] shadow-md' : 'text-gray-400 hover:bg-white/5 hover:text-[#d4af37]' }}">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
                 <span>Reportes</span>
             </a>
 
-            <a href="#" 
-               class="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wider text-gray-400 hover:bg-white/5 hover:text-[#d4af37] transition-all duration-200">
+            <a href="{{ route('admin.inventario') }}" 
+               class="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wider transition-all duration-200 {{ request()->routeIs('admin.inventario') ? 'bg-[#d4af37] text-[#121619] shadow-md' : 'text-gray-400 hover:bg-white/5 hover:text-[#d4af37]' }}">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>

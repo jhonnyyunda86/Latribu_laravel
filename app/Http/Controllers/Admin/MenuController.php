@@ -23,11 +23,18 @@ class MenuController extends Controller
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
             'precio' => 'required|numeric|min:0',
-            'imagen' => 'nullable|string',
+            'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'disponible' => 'boolean'
         ]);
 
         $validated['disponible'] = $request->has('disponible');
+
+        if ($request->hasFile('imagen')) {
+            $file = $request->file('imagen');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads'), $filename);
+            $validated['imagen'] = '/uploads/' . $filename;
+        }
 
         Producto::create($validated);
 
@@ -43,11 +50,26 @@ class MenuController extends Controller
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
             'precio' => 'required|numeric|min:0',
-            'imagen' => 'nullable|string',
+            'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'disponible' => 'boolean'
         ]);
 
         $validated['disponible'] = $request->has('disponible');
+
+        if ($request->hasFile('imagen')) {
+            // Eliminar imagen anterior local si existe y no es una URL externa
+            if ($producto->imagen && !str_starts_with($producto->imagen, 'http') && file_exists(public_path($producto->imagen))) {
+                @unlink(public_path($producto->imagen));
+            }
+            
+            $file = $request->file('imagen');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads'), $filename);
+            $validated['imagen'] = '/uploads/' . $filename;
+        } else {
+            // Si no se sube una nueva imagen, conservamos la actual
+            unset($validated['imagen']);
+        }
 
         $producto->update($validated);
 
@@ -57,6 +79,12 @@ class MenuController extends Controller
     public function destroy($id)
     {
         $producto = Producto::findOrFail($id);
+        
+        // Eliminar imagen local física si existe
+        if ($producto->imagen && !str_starts_with($producto->imagen, 'http') && file_exists(public_path($producto->imagen))) {
+            @unlink(public_path($producto->imagen));
+        }
+
         $producto->delete();
 
         return redirect()->back()->with('success', 'Producto eliminado exitosamente.');

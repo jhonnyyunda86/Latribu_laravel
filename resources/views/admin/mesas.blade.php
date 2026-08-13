@@ -1,65 +1,61 @@
 @php
-    // Obtener las categorías y productos reales de la base de datos
-    $categorias = \App\Models\Categoria::all();
-    $productos = \App\Models\Producto::with('categoria')->get();
+    // Obtener todas las mesas reales de la base de datos
+    $mesas = \App\Models\Mesa::all();
 @endphp
 
 <x-admin-layout>
     <x-slot name="header">
-        {{ __('Gestión del Menú') }}
+        {{ __('Gestión de Mesas') }}
     </x-slot>
 
-    <!-- Envoltorio Alpine.js para gestionar CRUD, Instant Search y Paginación Local -->
+    <!-- Envoltorio Alpine.js para CRUD, Búsqueda e Instant Pagination de Mesas -->
     <div x-data="{ 
             editModalOpen: false, 
             editFormAction: '', 
-            editNombre: '', 
-            editCategoriaId: '', 
-            editPrecio: '', 
-            editDescripcion: '', 
-            editImagen: '', 
-            editDisponible: true, 
+            editNumero: '', 
+            editCapacidad: '', 
+            editEstado: '', 
+            editUbicacion: '', 
+            editActivo: true, 
             searchQuery: '', 
-            selectedCategory: '',
+            selectedEstado: '',
             currentPage: 1,
-            products: {{ $productos->map(fn($p) => [
-                'id' => $p->id,
-                'nombre' => $p->nombre,
-                'descripcion' => $p->descripcion ?? '',
-                'precio' => $p->precio,
-                'imagen' => $p->imagen ?? '',
-                'disponible' => $p->disponible,
-                'categoria_id' => $p->categoria_id,
-                'categoria_nombre' => $p->categoria?->nombre ?? 'Sin Categoría'
+            mesas: {{ $mesas->map(fn($m) => [
+                'id' => $m->id,
+                'numero' => $m->numero,
+                'capacidad' => $m->capacidad,
+                'estado' => $m->estado,
+                'ubicacion' => $m->ubicacion ?? 'Sin especificar',
+                'activo' => $m->activo
             ])->toJson() }},
-            getFilteredProducts() {
-                return this.products.filter(p => {
-                    const matchesSearch = this.searchQuery === '' || p.nombre.toLowerCase().includes(this.searchQuery.toLowerCase());
-                    const matchesCategory = this.selectedCategory === '' || p.categoria_id.toString() === this.selectedCategory.toString();
-                    return matchesSearch && matchesCategory;
+            getFilteredMesas() {
+                return this.mesas.filter(m => {
+                    const matchesSearch = this.searchQuery === '' || m.numero.toLowerCase().includes(this.searchQuery.toLowerCase()) || m.ubicacion.toLowerCase().includes(this.searchQuery.toLowerCase());
+                    const matchesEstado = this.selectedEstado === '' || m.estado === this.selectedEstado;
+                    return matchesSearch && matchesEstado;
                 });
             },
-            getPaginatedProducts() {
+            getPaginatedMesas() {
                 const start = (this.currentPage - 1) * 6;
-                return this.getFilteredProducts().slice(start, start + 6);
+                return this.getFilteredMesas().slice(start, start + 6);
             },
             totalPages() {
-                return Math.ceil(this.getFilteredProducts().length / 6) || 1;
+                return Math.ceil(this.getFilteredMesas().length / 6) || 1;
             }
          }"
-         x-init="$watch('searchQuery', () => currentPage = 1); $watch('selectedCategory', () => currentPage = 1);"
+         x-init="$watch('searchQuery', () => currentPage = 1); $watch('selectedEstado', () => currentPage = 1);"
          class="space-y-6">
         
         <!-- Banner Informativo -->
         <div class="bg-[#121619] rounded-2xl p-6 text-white shadow-md border border-[#d4af37]/20 flex justify-between items-center">
             <div>
-                <span class="text-[9px] tracking-[0.3em] text-[#d4af37] font-bold uppercase block mb-1.5">• PLATILLOS Y BEBIDAS •</span>
-                <h3 class="text-2xl font-serif italic text-white">Carta del Restaurante</h3>
-                <p class="text-xs text-gray-400 font-light mt-1">Registra y administra las opciones del menú para clientes y meseros.</p>
+                <span class="text-[9px] tracking-[0.3em] text-[#d4af37] font-bold uppercase block mb-1.5">• SALÓN Y DISTRIBUCIÓN •</span>
+                <h3 class="text-2xl font-serif italic text-white">Mapa de Mesas</h3>
+                <p class="text-xs text-gray-400 font-light mt-1">Registra y monitorea el estado y la ubicación de las mesas físicas en el restaurante.</p>
             </div>
             <div class="text-right hidden sm:block">
-                <span class="text-[9px] text-[#d4af37] uppercase tracking-widest block font-bold leading-none mb-1">Total Productos</span>
-                <span class="text-2xl font-bold font-mono text-white">{{ $productos->count() }}</span>
+                <span class="text-[9px] text-[#d4af37] uppercase tracking-widest block font-bold leading-none mb-1">Total Mesas</span>
+                <span class="text-2xl font-bold font-mono text-white">{{ $mesas->count() }}</span>
             </div>
         </div>
 
@@ -89,17 +85,17 @@
         @endif
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-            <!-- LISTADO DE PRODUCTOS (Fijo a 6 filas por paginación) -->
+            <!-- LISTADO DE MESAS -->
             <div class="lg:col-span-2 space-y-4">
                 <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 flex flex-col justify-between min-h-[580px]">
                     <div>
-                        <!-- Encabezado y Filtros -->
+                        <!-- Filtros y Cabecera -->
                         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 pb-4 border-b border-gray-100">
                             <h4 class="text-md font-bold text-[#2c1d11] flex items-center gap-2 shrink-0">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#d4af37]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                 </svg>
-                                <span>Productos en Menú</span>
+                                <span>Mesas Disponibles</span>
                             </h4>
 
                             <!-- Filtros -->
@@ -112,68 +108,72 @@
                                     </span>
                                     <input type="text" x-model="searchQuery" 
                                            class="w-full pl-9 pr-3 py-2 bg-[#fdfbf7] border border-gray-200 rounded-xl focus:outline-none focus:border-[#d4af37] text-xs transition placeholder-gray-400" 
-                                           placeholder="Buscar platillo...">
+                                           placeholder="Buscar por número o zona...">
                                 </div>
 
-                                <select x-model="selectedCategory" 
+                                <select x-model="selectedEstado" 
                                         class="px-3 py-2 bg-[#fdfbf7] border border-gray-200 rounded-xl focus:outline-none focus:border-[#d4af37] text-xs transition">
-                                    <option value="">Todas las categorías</option>
-                                    @foreach($categorias as $categoria)
-                                        <option value="{{ $categoria->id }}">{{ $categoria->nombre }}</option>
-                                    @endforeach
+                                    <option value="">Todos los estados</option>
+                                    <option value="Disponible">Disponible</option>
+                                    <option value="Ocupada">Ocupada</option>
+                                    <option value="Reservada">Reservada</option>
+                                    <option value="Mantenimiento">Mantenimiento</option>
                                 </select>
                             </div>
                         </div>
 
-                        <!-- Tabla de Productos renderizada por AlpineJS -->
+                        <!-- Tabla de Mesas -->
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
                                 <thead>
                                     <tr class="border-b border-gray-100 text-[10px] text-gray-400 uppercase tracking-wider font-bold">
-                                        <th class="py-3">Producto</th>
-                                        <th class="py-3">Categoría</th>
-                                        <th class="py-3">Precio</th>
+                                        <th class="py-3">Número de Mesa</th>
+                                        <th class="py-3">Capacidad</th>
+                                        <th class="py-3">Ubicación / Zona</th>
                                         <th class="py-3">Estado</th>
                                         <th class="py-3 text-right">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-50 text-xs">
-                                    <!-- Renderizado Dinámico de Fila -->
-                                    <template x-for="producto in getPaginatedProducts()" :key="producto.id">
+                                    <template x-for="mesa in getPaginatedMesas()" :key="mesa.id">
                                         <tr>
                                             <td class="py-3.5 pr-3">
-                                                <div class="flex items-center gap-3">
-                                                    <template x-if="producto.imagen">
-                                                        <img :src="producto.imagen" class="w-10 h-10 object-cover rounded-lg border border-gray-100 shrink-0" :alt="producto.nombre">
-                                                    </template>
-                                                    <template x-if="!producto.imagen">
-                                                        <div class="w-10 h-10 bg-[#FAF4EB] text-[#d4af37] rounded-lg flex items-center justify-center font-bold text-xs shrink-0 border border-gray-100" x-text="producto.nombre.substring(0,2).toUpperCase()"></div>
-                                                    </template>
+                                                <div class="flex items-center gap-2">
+                                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 border border-gray-100"
+                                                         :class="{
+                                                             'bg-green-50 text-green-700': mesa.estado === 'Disponible',
+                                                             'bg-red-50 text-red-600': mesa.estado === 'Ocupada',
+                                                             'bg-amber-50 text-[#d4af37]': mesa.estado === 'Reservada',
+                                                             'bg-gray-100 text-gray-500': mesa.estado === 'Mantenimiento'
+                                                         }">
+                                                         <span x-text="mesa.numero"></span>
+                                                    </div>
                                                     <div>
-                                                        <h5 class="font-bold text-[#2c1d11]" x-text="producto.nombre"></h5>
-                                                        <p class="text-[10px] text-gray-400 font-light truncate max-w-xs" x-text="producto.descripcion"></p>
+                                                        <h5 class="font-bold text-[#2c1d11]" x-text="'Mesa ' + mesa.numero"></h5>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td class="py-3.5 text-gray-500 font-medium" x-text="producto.categoria_nombre"></td>
-                                            <td class="py-3.5 font-bold font-mono text-[#2c1d11]" x-text="'$' + parseFloat(producto.precio).toFixed(2)"></td>
+                                            <td class="py-3.5 text-gray-500 font-semibold" x-text="mesa.capacidad + ' personas'"></td>
+                                            <td class="py-3.5 text-gray-500 font-medium" x-text="mesa.ubicacion"></td>
                                             <td class="py-3.5">
-                                                <template x-if="producto.disponible">
-                                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-green-50 text-green-700 uppercase tracking-wider">Disponible</span>
-                                                </template>
-                                                <template x-if="!producto.disponible">
-                                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-red-50 text-red-600 uppercase tracking-wider">Agotado</span>
-                                                </template>
+                                                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider"
+                                                      :class="{
+                                                          'bg-green-50 text-green-700': mesa.estado === 'Disponible',
+                                                          'bg-red-50 text-red-600': mesa.estado === 'Ocupada',
+                                                          'bg-[#FAF4EB] text-[#d4af37]': mesa.estado === 'Reservada',
+                                                          'bg-gray-100 text-gray-500': mesa.estado === 'Mantenimiento'
+                                                      }"
+                                                      x-text="mesa.estado"></span>
                                             </td>
                                             <td class="py-3.5 text-right whitespace-nowrap">
+                                                <!-- Botón Editar -->
                                                 <button @click="
-                                                    editNombre = producto.nombre;
-                                                    editCategoriaId = producto.categoria_id;
-                                                    editPrecio = producto.precio;
-                                                    editDescripcion = producto.descripcion;
-                                                    editImagen = '';
-                                                    editDisponible = producto.disponible;
-                                                    editFormAction = '/admin/menu/' + producto.id;
+                                                    editNumero = mesa.numero;
+                                                    editCapacidad = mesa.capacidad;
+                                                    editEstado = mesa.estado;
+                                                    editUbicacion = mesa.ubicacion;
+                                                    editActivo = mesa.activo;
+                                                    editFormAction = '/admin/mesas/' + mesa.id;
                                                     editModalOpen = true;
                                                 " class="inline-flex items-center justify-center p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition mr-1.5">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -181,7 +181,8 @@
                                                     </svg>
                                                 </button>
 
-                                                <form method="POST" :action="'/admin/menu/' + producto.id" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este producto?');" class="inline">
+                                                <!-- Eliminar -->
+                                                <form method="POST" :action="'/admin/mesas/' + mesa.id" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta mesa?');" class="inline">
                                                     @csrf
                                                     <input type="hidden" name="_method" value="DELETE">
                                                     <button type="submit" class="inline-flex items-center justify-center p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition">
@@ -195,10 +196,10 @@
                                     </template>
                                 </tbody>
                             </table>
-
-                            <template x-if="getFilteredProducts().length === 0">
+                            
+                            <template x-if="getFilteredMesas().length === 0">
                                 <div class="text-center py-12 text-gray-400">
-                                    <p class="text-xs">No se encontraron productos coincidentes.</p>
+                                    <p class="text-xs">No se encontraron mesas registradas.</p>
                                 </div>
                             </template>
                         </div>
@@ -207,7 +208,7 @@
                     <!-- Controles de Paginación Fijos abajo -->
                     <div class="flex items-center justify-between border-t border-gray-100 pt-4 mt-4">
                         <span class="text-[10px] text-gray-400 font-medium">
-                            Mostrando página <span x-text="currentPage" class="font-bold text-[#2c1d11]"></span> de <span x-text="totalPages()" class="font-bold text-[#2c1d11]"></span> (<span x-text="getFilteredProducts().length" class="font-bold text-[#2c1d11]"></span> productos filtrados)
+                            Mostrando página <span x-text="currentPage" class="font-bold text-[#2c1d11]"></span> de <span x-text="totalPages()" class="font-bold text-[#2c1d11]"></span> (<span x-text="getFilteredMesas().length" class="font-bold text-[#2c1d11]"></span> mesas filtradas)
                         </span>
 
                         <div class="flex items-center gap-2">
@@ -228,73 +229,59 @@
                 </div>
             </div>
 
-            <!-- FORMULARIO DE AGREGAR PRODUCTO (Columna derecha) -->
+            <!-- FORMULARIO DE AGREGAR MESA -->
             <div class="space-y-4">
                 <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
                     <h4 class="text-md font-bold text-[#2c1d11] mb-4 flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#d4af37]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                         </svg>
-                        <span>Agregar Producto</span>
+                        <span>Agregar Mesa</span>
                     </h4>
 
-                    <form method="POST" action="{{ route('admin.menu.store') }}" enctype="multipart/form-data" class="space-y-4 text-xs">
+                    <form method="POST" action="{{ route('admin.mesas.store') }}" class="space-y-4 text-xs">
                         @csrf
 
-                        <!-- Nombre -->
+                        <!-- Número -->
                         <div class="space-y-1">
-                            <label for="nombre" class="font-bold text-[#2c1d11] block">Nombre del Producto</label>
-                            <input type="text" name="nombre" id="nombre" required 
+                            <label for="numero" class="font-bold text-[#2c1d11] block">Número o Código</label>
+                            <input type="text" name="numero" id="numero" required 
                                    class="w-full px-3.5 py-2.5 bg-[#fdfbf7] border border-gray-200 rounded-xl focus:outline-none focus:border-[#d4af37] text-xs transition" 
-                                   placeholder="Ej. Pizza Margarita">
+                                   placeholder="Ej. 1, 2B, VIP-1">
                         </div>
 
-                        <!-- Categoria Dropdown -->
+                        <!-- Capacidad -->
                         <div class="space-y-1">
-                            <label for="categoria_id" class="font-bold text-[#2c1d11] block">Categoría</label>
-                            <select name="categoria_id" id="categoria_id" required 
+                            <label for="capacidad" class="font-bold text-[#2c1d11] block">Capacidad (Personas)</label>
+                            <input type="number" name="capacidad" id="capacidad" min="1" required 
+                                   class="w-full px-3.5 py-2.5 bg-[#fdfbf7] border border-gray-200 rounded-xl focus:outline-none focus:border-[#d4af37] text-xs transition" 
+                                   placeholder="Ej. 4">
+                        </div>
+
+                        <!-- Estado -->
+                        <div class="space-y-1">
+                            <label for="estado" class="font-bold text-[#2c1d11] block">Estado Inicial</label>
+                            <select name="estado" id="estado" required 
                                     class="w-full px-3.5 py-2.5 bg-[#fdfbf7] border border-gray-200 rounded-xl focus:outline-none focus:border-[#d4af37] text-xs transition">
-                                <option value="" disabled selected>Selecciona una categoría</option>
-                                @foreach($categorias as $categoria)
-                                    <option value="{{ $categoria->id }}">{{ $categoria->nombre }}</option>
-                                @endforeach
+                                <option value="Disponible" selected>Disponible</option>
+                                <option value="Ocupada">Ocupada</option>
+                                <option value="Reservada">Reservada</option>
+                                <option value="Mantenimiento">Mantenimiento</option>
                             </select>
                         </div>
 
-                        <!-- Precio -->
+                        <!-- Ubicación -->
                         <div class="space-y-1">
-                            <label for="precio" class="font-bold text-[#2c1d11] block">Precio ($)</label>
-                            <input type="number" step="0.01" name="precio" id="precio" required 
+                            <label for="ubicacion" class="font-bold text-[#2c1d11] block">Ubicación o Zona</label>
+                            <input type="text" name="ubicacion" id="ubicacion" 
                                    class="w-full px-3.5 py-2.5 bg-[#fdfbf7] border border-gray-200 rounded-xl focus:outline-none focus:border-[#d4af37] text-xs transition" 
-                                   placeholder="Ej. 12.50">
-                        </div>
-
-                        <!-- Descripción -->
-                        <div class="space-y-1">
-                            <label for="descripcion" class="font-bold text-[#2c1d11] block">Descripción</label>
-                            <textarea name="descripcion" id="descripcion" rows="3" 
-                                      class="w-full px-3.5 py-2.5 bg-[#fdfbf7] border border-gray-200 rounded-xl focus:outline-none focus:border-[#d4af37] text-xs transition resize-none" 
-                                      placeholder="Detalla los ingredientes o tamaño..."></textarea>
-                        </div>
-
-                        <!-- Imagen -->
-                        <div class="space-y-1">
-                            <label for="imagen" class="font-bold text-[#2c1d11] block">Imagen del Producto</label>
-                            <input type="file" name="imagen" id="imagen" accept="image/*"
-                                   class="w-full px-3.5 py-2.5 bg-[#fdfbf7] border border-gray-200 rounded-xl focus:outline-none focus:border-[#d4af37] text-xs transition">
-                        </div>
-
-                        <!-- Disponible Checkbox -->
-                        <div class="flex items-center gap-2 pt-1">
-                            <input type="checkbox" name="disponible" id="disponible" value="1" checked 
-                                   class="rounded text-[#d4af37] focus:ring-[#d4af37] border-gray-300">
-                            <label for="disponible" class="font-bold text-[#2c1d11]">Disponible de inmediato</label>
+                                   placeholder="Ej. Salón Principal, Terraza, VIP">
                         </div>
 
                         <!-- Submit Button -->
                         <div class="pt-2">
                             <button type="submit" class="w-full py-3 bg-[#d4af37] hover:bg-yellow-600 text-[#121619] font-bold rounded-xl text-xs uppercase tracking-wider transition shadow-sm">
-                                Registrar Producto
+                                Registrar Mesa
                             </button>
                         </div>
                     </form>
@@ -302,7 +289,7 @@
             </div>
         </div>
 
-        <!-- Modal de Edición de Producto (AlpineJS) -->
+        <!-- Modal de Edición de Mesa (AlpineJS) -->
         <div x-show="editModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" x-cloak>
             <div class="bg-white rounded-2xl p-6 w-full max-w-md border border-gray-200 shadow-xl space-y-4 text-xs" @click.away="editModalOpen = false">
                 <div class="flex justify-between items-center border-b border-gray-100 pb-3">
@@ -310,59 +297,46 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#d4af37]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
-                        <span>Editar Producto</span>
+                        <span>Editar Mesa</span>
                     </h4>
                     <button @click="editModalOpen = false" class="text-gray-400 hover:text-gray-600 font-bold text-lg leading-none">&times;</button>
                 </div>
 
-                <form method="POST" :action="editFormAction" enctype="multipart/form-data" class="space-y-4">
+                <form method="POST" :action="editFormAction" class="space-y-4">
                     @csrf
                     @method('PUT')
 
-                    <!-- Nombre -->
+                    <!-- Número -->
                     <div class="space-y-1">
-                        <label for="edit_nombre" class="font-bold text-[#2c1d11] block">Nombre del Producto</label>
-                        <input type="text" name="nombre" id="edit_nombre" x-model="editNombre" required 
+                        <label for="edit_numero" class="font-bold text-[#2c1d11] block">Número o Código</label>
+                        <input type="text" name="numero" id="edit_numero" x-model="editNumero" required 
                                class="w-full px-3.5 py-2.5 bg-[#fdfbf7] border border-gray-200 rounded-xl focus:outline-none focus:border-[#d4af37] text-xs transition">
                     </div>
 
-                    <!-- Categoria Dropdown -->
+                    <!-- Capacidad -->
                     <div class="space-y-1">
-                        <label for="edit_categoria_id" class="font-bold text-[#2c1d11] block">Categoría</label>
-                        <select name="categoria_id" id="edit_categoria_id" x-model="editCategoriaId" required 
+                        <label for="edit_capacidad" class="font-bold text-[#2c1d11] block">Capacidad (Personas)</label>
+                        <input type="number" name="capacidad" id="edit_capacidad" x-model="editCapacidad" min="1" required 
+                               class="w-full px-3.5 py-2.5 bg-[#fdfbf7] border border-gray-200 rounded-xl focus:outline-none focus:border-[#d4af37] text-xs transition">
+                    </div>
+
+                    <!-- Estado -->
+                    <div class="space-y-1">
+                        <label for="edit_estado" class="font-bold text-[#2c1d11] block">Estado</label>
+                        <select name="estado" id="edit_estado" x-model="editEstado" required 
                                 class="w-full px-3.5 py-2.5 bg-[#fdfbf7] border border-gray-200 rounded-xl focus:outline-none focus:border-[#d4af37] text-xs transition">
-                            @foreach($categorias as $categoria)
-                                <option value="{{ $categoria->id }}">{{ $categoria->nombre }}</option>
-                            @endforeach
+                            <option value="Disponible">Disponible</option>
+                            <option value="Ocupada">Ocupada</option>
+                            <option value="Reservada">Reservada</option>
+                            <option value="Mantenimiento">Mantenimiento</option>
                         </select>
                     </div>
 
-                    <!-- Precio -->
+                    <!-- Ubicación -->
                     <div class="space-y-1">
-                        <label for="edit_precio" class="font-bold text-[#2c1d11] block">Precio ($)</label>
-                        <input type="number" step="0.01" name="precio" id="edit_precio" x-model="editPrecio" required 
+                        <label for="edit_ubicacion" class="font-bold text-[#2c1d11] block">Ubicación o Zona</label>
+                        <input type="text" name="ubicacion" id="edit_ubicacion" x-model="editUbicacion"
                                class="w-full px-3.5 py-2.5 bg-[#fdfbf7] border border-gray-200 rounded-xl focus:outline-none focus:border-[#d4af37] text-xs transition">
-                    </div>
-
-                    <!-- Descripción -->
-                    <div class="space-y-1">
-                        <label for="edit_descripcion" class="font-bold text-[#2c1d11] block">Descripción</label>
-                        <textarea name="descripcion" id="edit_descripcion" rows="3" x-model="editDescripcion"
-                                  class="w-full px-3.5 py-2.5 bg-[#fdfbf7] border border-gray-200 rounded-xl focus:outline-none focus:border-[#d4af37] text-xs transition resize-none"></textarea>
-                    </div>
-
-                    <!-- Imagen -->
-                    <div class="space-y-1">
-                        <label for="edit_imagen" class="font-bold text-[#2c1d11] block">Nueva Imagen (Opcional)</label>
-                        <input type="file" name="imagen" id="edit_imagen" accept="image/*"
-                               class="w-full px-3.5 py-2.5 bg-[#fdfbf7] border border-gray-200 rounded-xl focus:outline-none focus:border-[#d4af37] text-xs transition">
-                    </div>
-
-                    <!-- Disponible Checkbox -->
-                    <div class="flex items-center gap-2 pt-1">
-                        <input type="checkbox" name="disponible" id="edit_disponible" value="1" :checked="editDisponible" 
-                               class="rounded text-[#d4af37] focus:ring-[#d4af37] border-gray-300">
-                        <label for="edit_disponible" class="font-bold text-[#2c1d11]">Disponible</label>
                     </div>
 
                     <!-- Submit & Cancel Buttons -->

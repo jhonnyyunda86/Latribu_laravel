@@ -19,15 +19,6 @@
                 <span class="text-[11px] text-[#d4af37] font-bold uppercase tracking-widest block mb-1">Panel Administrativo</span>
                 <h3 class="text-3xl font-bold tracking-tight text-[#2c1d11] mb-2">Bienvenido, Administrador</h3>
                 <p class="text-sm text-gray-500 font-light mb-4">Gestiona clientes, meseros, productos, mesas, reservas y pedidos de Restaurante La Tribu.</p>
-                
-                <div>
-                    <button class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#d4af37] hover:bg-yellow-600 text-[#121619] font-bold rounded-xl text-xs uppercase tracking-wider transition shadow-md">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                        </svg>
-                        <span>Agregar Usuario</span>
-                    </button>
-                </div>
             </div>
 
             <!-- Card de La Tribu a la derecha -->
@@ -147,7 +138,7 @@
                         <span class="text-xs font-semibold text-[#2c1d11]">Gestionar menú</span>
                     </a>
 
-                    <a href="#" class="p-4 rounded-xl bg-[#fdfbf7] hover:bg-[#FAF4EB] border border-gray-200 flex flex-col items-center justify-center text-center group transition">
+                    <a href="{{ route('admin.mesas') }}" class="p-4 rounded-xl bg-[#fdfbf7] hover:bg-[#FAF4EB] border border-gray-200 flex flex-col items-center justify-center text-center group transition">
                         <div class="w-8 h-8 rounded-lg bg-[#FAF4EB] text-[#d4af37] flex items-center justify-center mb-2 group-hover:scale-110 transition border border-[#d4af37]/15">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />

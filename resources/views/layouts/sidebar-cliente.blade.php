@@ -1,5 +1,4 @@
-<!-- Sidebar -->
-<aside class="fixed inset-y-0 left-0 z-50 w-64 bg-[#121619] text-gray-300 flex flex-col justify-between transition-transform duration-300 transform md:translate-x-0 md:static md:h-screen border-r border-[#d4af37]/20"
+<aside class="fixed inset-y-0 left-0 z-50 w-64 bg-[#121619] text-gray-300 flex flex-col justify-between transition-transform duration-300 transform md:translate-x-0 md:sticky md:top-0 md:h-screen border-r border-[#d4af37]/20"
     :class="mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'">
     
     <div class="flex flex-col flex-1 min-h-0">

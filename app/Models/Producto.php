@@ -14,12 +14,14 @@ class Producto extends Model
         'descripcion',
         'precio',
         'imagen',
-        'disponible'
+        'disponible',
+        'stock'
     ];
 
     protected $casts = [
         'disponible' => 'boolean',
         'precio' => 'decimal:2',
+        'stock' => 'integer'
     ];
 
     public function categoria(): BelongsTo
