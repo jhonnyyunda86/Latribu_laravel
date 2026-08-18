@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\PedidoController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ReporteController;
 use App\Http\Controllers\Admin\InventarioController;
+use App\Http\Controllers\MeseroController;
+use App\Http\Controllers\ClienteController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -65,13 +67,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/admin/inventario/movimiento/{id}', [InventarioController::class, 'registrarMovimiento'])->name('admin.inventario.movimiento.store');
     Route::delete('/admin/inventario/producto/{id}', [InventarioController::class, 'destroyProduct'])->name('admin.inventario.product.destroy');
 
-    Route::get('/mesero/dashboard', function () {
-        return view('mesero.dashboard');
-    })->name('mesero.dashboard');
+    Route::get('/mesero/dashboard', [MeseroController::class, 'dashboard'])->name('mesero.dashboard');
 
-    Route::get('/cliente/dashboard', function () {
-        return view('clientes.dashboard');
-    })->name('cliente.dashboard');
+    Route::get('/mesero/menu', [MeseroController::class, 'menu'])->name('mesero.menu');
+    Route::post('/mesero/pedidos', [MeseroController::class, 'storePedido'])->name('mesero.pedidos.store');
+    Route::get('/mesero/mesas', [MeseroController::class, 'mesas'])->name('mesero.mesas');
+    Route::patch('/mesero/mesas/{id}/status', [MeseroController::class, 'updateMesaStatus'])->name('mesero.mesas.status');
+    Route::get('/mesero/pedidos', [MeseroController::class, 'pedidos'])->name('mesero.pedidos');
+    Route::patch('/mesero/pedidos/{id}/status', [MeseroController::class, 'updatePedidoStatus'])->name('mesero.pedidos.status');
+    Route::get('/mesero/reservas', [MeseroController::class, 'reservas'])->name('mesero.reservas');
+    Route::patch('/mesero/reservas/{id}/status', [MeseroController::class, 'updateReservaStatus'])->name('mesero.reservas.status');
+
+    Route::get('/cliente/dashboard', [ClienteController::class, 'dashboard'])->name('cliente.dashboard');
+    Route::get('/cliente/facturas', [ClienteController::class, 'facturas'])->name('cliente.facturas');
+    Route::get('/cliente/menu', [ClienteController::class, 'menu'])->name('cliente.menu');
+    Route::post('/cliente/pedidos', [ClienteController::class, 'storePedido'])->name('cliente.pedidos.store');
+    Route::get('/cliente/facturas/{id}/pdf', [ClienteController::class, 'descargarPdf'])->name('cliente.facturas.pdf');
+    Route::get('/cliente/reservas', [ClienteController::class, 'reservas'])->name('cliente.reservas');
+    Route::post('/cliente/reservas', [ClienteController::class, 'storeReserva'])->name('cliente.reservas.store');
 });
 
 Route::middleware('auth')->group(function () {

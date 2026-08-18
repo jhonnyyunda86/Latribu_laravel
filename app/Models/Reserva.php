@@ -31,4 +31,16 @@ class Reserva extends Model
     {
         return $this->belongsTo(Mesa::class, 'mesa_id');
     }
+
+    // Mutator para el estado
+    public function setEstadoAttribute($value)
+    {
+        $this->attributes['estado'] = strtolower($value);
+    }
+
+    // Accessor para el estado
+    public function getEstadoAttribute($value)
+    {
+        return ucfirst($value);
+    }
 }

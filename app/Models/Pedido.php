@@ -47,4 +47,41 @@ class Pedido extends Model
     {
         return $this->hasOne(Factura::class, 'pedido_id');
     }
+
+    // Mutator para el estado
+    public function setEstadoAttribute($value)
+    {
+        $map = [
+            'En Espera' => 'pendiente',
+            'Entregado' => 'entregado',
+            'pendiente' => 'pendiente',
+            'entregado' => 'entregado',
+        ];
+        $this->attributes['estado'] = $map[$value] ?? 'pendiente';
+    }
+
+    // Accessor para el estado
+    public function getEstadoAttribute($value)
+    {
+        $map = [
+            'pendiente' => 'En Espera',
+            'en_preparacion' => 'En Espera',
+            'entregado' => 'Entregado',
+            'pagado' => 'Entregado',
+            'cancelado' => 'Cancelado',
+        ];
+        return $map[$value] ?? $value;
+    }
+
+    // Mutator para tipo_pedido
+    public function setTipoPedidoAttribute($value)
+    {
+        $this->attributes['tipo_pedido'] = strtolower($value);
+    }
+
+    // Accessor para tipo_pedido
+    public function getTipoPedidoAttribute($value)
+    {
+        return ucfirst($value);
+    }
 }

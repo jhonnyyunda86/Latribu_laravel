@@ -24,14 +24,39 @@
             </div>
         </div>
 
+        @if(session('success'))
+            <div x-data="{ successModalOpen: true }" x-show="successModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" x-cloak>
+                <div class="bg-white rounded-2xl p-6 w-full max-w-sm border border-gray-200 shadow-2xl text-center space-y-4"
+                     x-show="successModalOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100">
+                    
+                    <div class="w-16 h-16 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto border-2 border-green-200 shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+
+                    <div class="space-y-1">
+                        <h4 class="text-md font-bold text-[#2c1d11]">¡Acción Completada!</h4>
+                        <p class="text-xs text-gray-500 font-light leading-relaxed">{{ session('success') }}</p>
+                    </div>
+
+                    <div class="pt-2">
+                        <button @click="successModalOpen = false" class="w-full py-2.5 bg-[#d4af37] hover:bg-yellow-600 text-[#121619] font-bold rounded-xl text-xs uppercase tracking-wider transition shadow-sm">
+                            Aceptar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <!-- Grid de Información en Colores Crema y Marrón Vintage -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <!-- Reservas Activas -->
             <div class="bg-white p-5 rounded-2xl border border-gray-200 flex items-center justify-between hover:shadow-md transition">
                 <div class="space-y-1">
                     <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest block">Reservas Activas</span>
-                    <h4 class="text-2xl font-bold tracking-tight text-[#2c1d11]">1 Activa</h4>
-                    <span class="text-[10px] text-[#d4af37] font-semibold">Hoy a las 8:30 PM</span>
+                    <h4 class="text-2xl font-bold tracking-tight text-[#2c1d11]">{{ $reservasActivasCount }} Activas</h4>
+                    <span class="text-[10px] text-[#d4af37] font-semibold">Vigentes en agenda</span>
                 </div>
                 <div class="w-12 h-12 bg-[#FAF4EB] text-[#d4af37] rounded-xl flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -44,8 +69,8 @@
             <div class="bg-white p-5 rounded-2xl border border-gray-200 flex items-center justify-between hover:shadow-md transition">
                 <div class="space-y-1">
                     <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest block">Pedidos Totales</span>
-                    <h4 class="text-2xl font-bold tracking-tight text-[#2c1d11]">6 Realizados</h4>
-                    <span class="text-[10px] text-gray-400 block">Último: hace 3 días</span>
+                    <h4 class="text-2xl font-bold tracking-tight text-[#2c1d11]">{{ $totalPedidosCount }} Realizados</h4>
+                    <span class="text-[10px] text-gray-400 block">Historial de órdenes</span>
                 </div>
                 <div class="w-12 h-12 bg-[#FAF4EB] text-orange-600 rounded-xl flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -90,20 +115,22 @@
                 <h4 class="text-lg font-serif italic text-[#2c1d11] font-semibold border-b border-gray-100 pb-3">Mi Historial de Reservas</h4>
                 
                 <div class="space-y-3">
-                    <div class="flex items-center justify-between p-4 bg-[#fdfbf7] rounded-xl border border-gray-100">
-                        <div>
-                            <h5 class="text-sm font-semibold text-[#2c1d11]">Reserva de Mesa Especial</h5>
-                            <p class="text-[11px] text-gray-500">Hoy a las 8:30 PM • Mesa 4 • 4 Personas</p>
+                    @forelse($reservas as $reserva)
+                        <div class="flex items-center justify-between p-4 bg-[#fdfbf7] rounded-xl border border-gray-100">
+                            <div>
+                                <h5 class="text-sm font-semibold text-[#2c1d11]">Reserva de Mesa</h5>
+                                <p class="text-[11px] text-gray-500">{{ $reserva->fecha_reserva->format('d/m/Y') }} a las {{ \Carbon\Carbon::parse($reserva->hora_reserva)->format('h:i A') }} • Mesa {{ $reserva->mesa?->numero ?? 'Sin asignar' }} • {{ $reserva->cantidad_personas }} Personas</p>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider
+                                @if($reserva->estado === 'Confirmada') bg-green-50 text-green-800
+                                @elseif($reserva->estado === 'Pendiente') bg-[#FAF4EB] text-[#d4af37]
+                                @else bg-red-50 text-red-800 @endif">{{ $reserva->estado }}</span>
                         </div>
-                        <span class="px-2.5 py-1 rounded-full text-[9px] font-bold bg-[#FAF4EB] text-[#d4af37] uppercase tracking-wider">Confirmada</span>
-                    </div>
-                    <div class="flex items-center justify-between p-4 bg-[#fdfbf7] rounded-xl border border-gray-100">
-                        <div>
-                            <h5 class="text-sm font-semibold text-[#2c1d11]">Almuerzo Familiar</h5>
-                            <p class="text-[11px] text-gray-500">Hace 1 semana • Mesa Principal • 6 Personas</p>
+                    @empty
+                        <div class="text-center py-8 text-xs text-gray-400 font-light">
+                            No tienes reservaciones registradas en el sistema.
                         </div>
-                        <span class="px-2.5 py-1 rounded-full text-[9px] font-bold bg-green-50 text-green-800 uppercase tracking-wider">Completada</span>
-                    </div>
+                    @endforelse
                 </div>
             </div>
 
