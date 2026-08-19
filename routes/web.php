@@ -85,6 +85,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/cliente/facturas/{id}/pdf', [ClienteController::class, 'descargarPdf'])->name('cliente.facturas.pdf');
     Route::get('/cliente/reservas', [ClienteController::class, 'reservas'])->name('cliente.reservas');
     Route::post('/cliente/reservas', [ClienteController::class, 'storeReserva'])->name('cliente.reservas.store');
+    Route::get('/cliente/pedidos', [ClienteController::class, 'pedidos'])->name('cliente.pedidos');
 });
 
 Route::middleware('auth')->group(function () {

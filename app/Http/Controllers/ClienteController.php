@@ -205,4 +205,15 @@ class ClienteController extends Controller
 
         return redirect()->route('cliente.reservas')->with('success', '¡Tu reserva ha sido solicitada con éxito! Su comprobante de reserva ha sido generado en facturas.');
     }
+
+    public function pedidos()
+    {
+        $userId = auth()->id();
+        $pedidos = Pedido::where('user_id', $userId)
+            ->with(['mesa', 'detalles.producto', 'factura'])
+            ->latest()
+            ->get();
+
+        return view('clientes.pedidos', compact('pedidos'));
+    }
 }

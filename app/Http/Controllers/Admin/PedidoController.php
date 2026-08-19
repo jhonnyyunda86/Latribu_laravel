@@ -32,8 +32,19 @@ class PedidoController extends Controller
     public function destroy($id)
     {
         $pedido = Pedido::findOrFail($id);
+
+        // Eliminar la factura y sus detalles si existen para evitar violaciones de clave foránea (RESTRICT)
+        if ($pedido->factura) {
+            $pedido->factura->detalles()->delete();
+            $pedido->factura->delete();
+        }
+
+        // Eliminar los detalles del pedido
+        $pedido->detalles()->delete();
+
+        // Eliminar el pedido de la base de datos
         $pedido->delete();
 
-        return redirect()->back()->with('success', 'Pedido eliminado exitosamente.');
+        return redirect()->back()->with('success', 'Pedido y su factura asociada eliminados exitosamente.');
     }
 }
