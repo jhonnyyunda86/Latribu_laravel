@@ -12,6 +12,7 @@
 
         <!-- Styles / Scripts -->
         <script src="https://cdn.tailwindcss.com"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
         <script>
             tailwind.config = {
                 theme: {
@@ -403,6 +404,199 @@
 
             function goToSlide(index) {
                 showSlide(index);
+            }
+        </script>
+
+        <!-- CHATBOT ASISTENTE VIRTUAL LA TRIBU -->
+        <div x-data="tribuChatbot()" class="fixed bottom-6 right-6 z-50 font-sans text-[#2c1d11]">
+            <!-- Botón flotante -->
+            <button @click="toggleChat()" 
+                    class="bg-[#d4af37] hover:bg-yellow-600 text-[#121619] p-4 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 transform hover:scale-110 active:scale-95 focus:outline-none relative">
+                <span class="absolute -top-1.5 -right-1.5 bg-red-650 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-md animate-bounce" x-show="unread">1</span>
+                <!-- Icono de chat -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#121619]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+            </button>
+
+            <!-- Ventana de Chat -->
+            <div x-show="open" 
+                 x-transition:enter="transition ease-out duration-300 transform translate-y-4 opacity-0"
+                 x-transition:enter-end="translate-y-0 opacity-100"
+                 x-transition:leave="transition ease-in duration-200 transform translate-y-4 opacity-100"
+                 x-transition:leave-end="translate-y-4 opacity-0"
+                 class="absolute bottom-16 right-0 w-[340px] sm:w-[380px] bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-150 flex flex-col h-[480px]"
+                 x-cloak>
+                
+                <!-- Encabezado del Chat -->
+                <div class="bg-[#121619] text-white p-4 flex items-center justify-between border-b border-[#d4af37]/20 relative">
+                    <div class="absolute right-0 top-0 translate-x-4 -translate-y-4 w-24 h-24 bg-[#d4af37]/5 rounded-full blur-xl pointer-events-none"></div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-[#d4af37]/15 border border-[#d4af37]/40 flex items-center justify-center text-lg shadow-sm">
+                            🤠
+                        </div>
+                        <div class="text-left">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-[#d4af37] leading-none mb-1">Asistente La Tribu</h4>
+                            <span class="text-[9px] text-gray-400 font-light flex items-center gap-1.5 leading-none">
+                                <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                                En línea ahora
+                            </span>
+                        </div>
+                    </div>
+                    <button @click="toggleChat()" class="text-gray-400 hover:text-white transition font-bold text-lg">&times;</button>
+                </div>
+
+                <!-- Lista de Mensajes -->
+                <div class="flex-1 overflow-y-auto p-4 space-y-3 bg-[#fdfbf7] text-left" id="chat-messages-container">
+                    <template x-for="msg in messages">
+                        <div class="flex flex-col" :class="msg.sender === 'user' ? 'items-end' : 'items-start'">
+                            <div :class="msg.sender === 'user' ? 'bg-[#121619] text-white rounded-2xl rounded-tr-none' : 'bg-white border border-gray-200 text-[#2c1d11] rounded-2xl rounded-tl-none'"
+                                 class="max-w-[85%] p-3 text-xs shadow-sm leading-relaxed whitespace-pre-line">
+                                <span x-html="msg.text"></span>
+                            </div>
+                            
+                            <!-- Botones rápidos en el mensaje del bot -->
+                            <template x-if="msg.buttons && msg.buttons.length > 0">
+                                <div class="flex items-center gap-2 mt-2 flex-wrap">
+                                    <template x-for="btn in msg.buttons">
+                                        <a :href="btn.url" class="px-3 py-1.5 bg-[#d4af37] hover:bg-yellow-600 text-[#121619] font-bold rounded-lg text-[9px] uppercase tracking-wider transition shadow-sm" x-text="btn.label"></a>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+
+                    <!-- Indicador de Escribiendo... -->
+                    <div class="flex items-center gap-2 text-gray-400" x-show="typing">
+                        <span class="text-[10px] italic">La Tribu está pensando...</span>
+                    </div>
+                </div>
+
+                <!-- Caja de Entrada -->
+                <div class="p-3 bg-white border-t border-gray-100 flex items-center gap-2">
+                    <input type="text" 
+                           x-model="inputMessage" 
+                           @keydown.enter="sendMessage()" 
+                           placeholder="Pregúntame sobre el menú, reservas..." 
+                           class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-[#d4af37] focus:border-[#d4af37]">
+                    <button @click="sendMessage()" class="bg-[#d4af37] hover:bg-yellow-600 text-[#121619] p-2.5 rounded-xl transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#121619]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <script>
+            function tribuChatbot() {
+                return {
+                    open: false,
+                    unread: true,
+                    typing: false,
+                    inputMessage: '',
+                    messages: [
+                        {
+                            sender: 'bot',
+                            text: '¡Hola! 🤠 Soy el asistente inteligente de **La Tribu**. Estoy aquí para guiarte en el uso de nuestra plataforma y resolver cualquier duda.\n\n¿Te gustaría saber cómo realizar un pedido, reservar una mesa o conocer las funcionalidades de nuestro software?',
+                            buttons: [
+                                { label: 'Iniciar Sesión', url: '/login' },
+                                { label: 'Registrarse', url: '/register' }
+                            ]
+                        }
+                    ],
+                    toggleChat() {
+                        this.open = !this.open;
+                        if (this.open) {
+                            this.unread = false;
+                            this.scrollToBottom();
+                        }
+                    },
+                    sendMessage() {
+                        if (this.inputMessage.trim() === '') return;
+                        const userText = this.inputMessage.trim();
+                        this.messages.push({ sender: 'user', text: userText });
+                        this.inputMessage = '';
+                        this.scrollToBottom();
+
+                        this.typing = true;
+                        
+                        setTimeout(() => {
+                            this.typing = false;
+                            const reply = this.getBotReply(userText);
+                            this.messages.push(reply);
+                            this.scrollToBottom();
+                        }, 800);
+                    },
+                    getBotReply(query) {
+                        const q = query.toLowerCase();
+
+                        // Match pedir, ordenar, delivery, etc.
+                        if (q.includes('pedir') || q.includes('ordenar') || q.includes('comida') || q.includes('domicilio') || q.includes('llevar') || q.includes('menu') || q.includes('menú') || q.includes('comprar')) {
+                            return {
+                                sender: 'bot',
+                                text: '🍔 **¡Ordena deliciosos platillos a domicilio!**\n\nEn **La Tribu** puedes consultar nuestra carta digital completa con fotos de alta calidad, precios y stock disponible en tiempo real.\n\nPara realizar una compra, debes **Iniciar Sesión** o **Registrarte**. Una vez dentro de tu cuenta de cliente, entra a **"Ver Menú"**, agrega tus productos favoritos al carrito, ingresa tu dirección/teléfono y ¡listo! Se generará tu pedido y tu factura POS de inmediato.',
+                                buttons: [
+                                    { label: 'Iniciar Sesión', url: '/login' },
+                                    { label: 'Registrarse', url: '/register' }
+                                ]
+                            };
+                        }
+
+                        // Match reserva, mesa, fecha, etc.
+                        if (q.includes('reserva') || q.includes('reservar') || q.includes('mesa') || q.includes('fecha') || q.includes('hora') || q.includes('agendar')) {
+                            return {
+                                sender: 'bot',
+                                text: '📅 **¡Reserva tu mesa preferida!**\n\nPara asegurar un espacio exclusivo en nuestro salón virtual, solo debes contar con una cuenta de cliente activa. \n\nTe invitamos a **Registrarte** o **Iniciar Sesión**. Luego, dirígete a **"Mis Reservas"**, selecciona una de las mesas registradas por el administrador, indica la fecha, hora e invitados y confirma. Se generará un comprobante de reserva al instante.',
+                                buttons: [
+                                    { label: 'Iniciar Sesión', url: '/login' },
+                                    { label: 'Registrarse', url: '/register' }
+                                ]
+                            };
+                        }
+
+                        // Match roles, sistema, software
+                        if (q.includes('roles') || q.includes('rol') || q.includes('sistema') || q.includes('software') || q.includes('mesero') || q.includes('administrador') || q.includes('admin') || q.includes('cliente') || q.includes('funcion')) {
+                            return {
+                                sender: 'bot',
+                                text: '💻 **El software de La Tribu cuenta con 3 roles principales:**\n\n1. **Administrador:** Registra categorías, productos con fotos, mesas, gestiona el stock de inventario y audita los reportes de ventas.\n2. **Mesero:** Administra el estado de las mesas en tiempo real (Disponible, Ocupada, Cuenta, etc.), toma comandas y gestiona las comandas activas.\n3. **Cliente:** Realiza reservas virtuales de mesa, ordena comidas a domicilio y consulta su historial con descargas de facturas POS.',
+                                buttons: [
+                                    { label: 'Ingresar al Portal', url: '/login' }
+                                ]
+                            };
+                        }
+
+                        // Match factura, pos, pdf
+                        if (q.includes('factura') || q.includes('pdf') || q.includes('pos') || q.includes('ticket') || q.includes('cobro') || q.includes('comprobante')) {
+                            return {
+                                sender: 'bot',
+                                text: '🧾 **Facturación Inteligente & Tickets POS PDF:**\n\nCada vez que realizas un pedido o reservas una mesa, el sistema genera de forma automática una factura en la base de datos con el detalle de los productos y montos.\n\nDesde el portal de cliente, en la sección **"Mis Facturas"** o **"Mis Pedidos"**, podrás consultar cualquier consumo y descargar tu tirilla de caja en formato PDF (estilo POS de 80mm) con un solo clic.',
+                                buttons: [
+                                    { label: 'Ver Facturas', url: '/login' }
+                                ]
+                            };
+                        }
+
+                        // Default fallback
+                        return {
+                            sender: 'bot',
+                            text: '🤠 Estoy a tu servicio. Puedes consultarme acerca de:\n\n• ¿Cómo hacer un **pedido a domicilio**?\n• ¿Cómo **reservar una mesa** virtual?\n• ¿Qué **roles** operan en el software?\n• **Facturas y comprobantes** en formato POS PDF.\n\nSi deseas comenzar a ordenar o agendar una reserva, por favor inicia sesión o crea una cuenta gratis.',
+                            buttons: [
+                                { label: 'Iniciar Sesión', url: '/login' },
+                                { label: 'Registrarse', url: '/register' }
+                            ]
+                        };
+                    },
+                    scrollToBottom() {
+                        setTimeout(() => {
+                            const container = document.getElementById('chat-messages-container');
+                            if (container) {
+                                container.scrollTop = container.scrollHeight;
+                            }
+                        }, 50);
+                    }
+                }
             }
         </script>
 
