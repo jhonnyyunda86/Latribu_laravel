@@ -1,43 +1,217 @@
-# Rutas Web del Sistema (web.php)
+# Explicación Detallada del Archivo de Rutas: web.php
 
-**Ubicación:** `routes/web.php`
+**Ruta física:** `routes/web.php`
 
-## Descripción
-Este archivo define el ruteo de la aplicación. Las rutas se dividen en grupos protegidos por autenticación y clasificados según el rol de usuario para garantizar la seguridad.
+En Laravel, las rutas definen las puertas de entrada al sistema web. Este archivo asocia las direcciones URL que escribe el usuario o que invoca el navegador con un controlador y método específico en PHP, controlando los permisos mediante middlewares.
 
-## Rutas por Grupo de Acceso
+---
 
-### 1. Rutas Públicas (Sin Autenticación)
-* `GET /`: Página de inicio del restaurante (`welcome.blade.php`) con chatbot.
+## 1. Código Fuente Completo
 
-### 2. Grupo de Inicio Común (Autenticados)
-* `GET /dashboard`: Controlador de redirección automática hacia el inicio según el rol (`admin`, `mesero` o `cliente`).
+```php
+<?php
 
-### 3. Grupo de Administradores
-* **Usuarios:** `GET/POST/DELETE /admin/usuarios` (Gestión de personal de trabajo).
-* **Mesas:** `GET/POST/PUT/DELETE /admin/mesas` (Gestión física de salón).
-* **Menú:** `GET/POST/PUT/DELETE /admin/menu` (Platillos, precios, imágenes).
-* **Pedidos:** `GET/POST/DELETE /admin/pedidos` (Control total e historial de comandas).
-* **Reservas:** `GET/POST/DELETE /admin/reservas` (Revisar y validar reservas).
-* **Reportes:** `GET /admin/reportes` (Analítica de ventas e ingresos).
-* **Inventario:** `GET/POST/DELETE /admin/inventario` y `POST /admin/inventario/movimiento/{id}` (Gestión de existencias).
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\MenuController;
+use App\Http\Controllers\Admin\MesaController;
+use App\Http\Controllers\Admin\ReservaController;
+use App\Http\Controllers\Admin\PedidoController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\ReporteController;
+use App\Http\Controllers\Admin\InventarioController;
+use App\Http\Controllers\MeseroController;
+use App\Http\Controllers\ClienteController;
+use Illuminate\Support\Facades\Route;
 
-### 4. Grupo de Meseros
-* **Dashboard:** `GET /mesero/dashboard` (Grilla de estado de mesas).
-* **Tomar Comanda:** `GET /mesero/menu` (Carta digital con panel de pedido).
-* **Guardar Comanda:** `POST /mesero/pedidos` (Guarda comanda, resta stock y genera factura).
-* **Control de Mesas:** `GET /mesero/mesas` (Detalle de consumos por mesa).
-* **Cambiar Estado Mesa:** `PATCH /mesero/mesas/{id}/status` (Modal de cambio de estado).
-* **Bandeja de Pedidos:** `GET /mesero/pedidos` (Monitor de despacho de comandas).
-* **Despachar Pedido:** `PATCH /mesero/pedidos/{id}/status` (Marcar como entregado).
-* **Bandeja de Reservas:** `GET /mesero/reservas` (Monitoreo de reservaciones).
-* **Editar Reserva:** `PATCH /mesero/reservas/{id}/status` (Modal de edición de estado de reserva).
+Route::get('/', function () {
+    return view('welcome');
+});
 
-### 5. Grupo de Clientes
-* **Dashboard:** `GET /cliente/dashboard` (Portal de inicio del cliente).
-* **Ver Menú:** `GET /cliente/menu` (Carta interactiva para compras).
-* **Pedir Domicilio:** `POST /cliente/pedidos` (Crea pedido a domicilio, resta stock y genera factura).
-* **Facturas:** `GET /cliente/facturas` (Lista de comprobantes de pago emitidos).
-* **Descarga de PDF:** `GET /cliente/facturas/{id}/pdf` (Descargar factura POS en PDF).
-* **Reservas:** `GET /cliente/reservas` (Historial y formulario de reservas).
-* **Solicitar Reserva:** `POST /cliente/reservas` (Agenda reserva y genera su factura por $0.00).
+Route::get('/dashboard', function () {
+    $role = auth()->user()->role?->name;
+
+    if (in_array($role, ['Admin', 'Administrador'])) {
+        return redirect()->route('admin.dashboard');
+    }
+
+    if ($role === 'Mesero') {
+        return redirect()->route('mesero.dashboard');
+    }
+
+    return redirect()->route('cliente.dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/admin/dashboard', function () {
+        return view('admin.dashboard');
+    })->name('admin.dashboard');
+
+    Route::get('/admin/menu', [MenuController::class, 'index'])->name('admin.menu');
+    Route::post('/admin/menu', [MenuController::class, 'store'])->name('admin.menu.store');
+    Route::put('/admin/menu/{id}', [MenuController::class, 'update'])->name('admin.menu.update');
+    Route::delete('/admin/menu/{id}', [MenuController::class, 'destroy'])->name('admin.menu.destroy');
+
+    Route::get('/admin/mesas', [MesaController::class, 'index'])->name('admin.mesas');
+    Route::post('/admin/mesas', [MesaController::class, 'store'])->name('admin.mesas.store');
+    Route::put('/admin/mesas/{id}', [MesaController::class, 'update'])->name('admin.mesas.update');
+    Route::delete('/admin/mesas/{id}', [MesaController::class, 'destroy'])->name('admin.mesas.destroy');
+
+    Route::get('/admin/reservas', [ReservaController::class, 'index'])->name('admin.reservas');
+    Route::patch('/admin/reservas/{id}/status', [ReservaController::class, 'updateStatus'])->name('admin.reservas.status');
+    Route::delete('/admin/reservas/{id}', [ReservaController::class, 'destroy'])->name('admin.reservas.destroy');
+
+    Route::get('/admin/pedidos', [PedidoController::class, 'index'])->name('admin.pedidos');
+    Route::patch('/admin/pedidos/{id}/status', [PedidoController::class, 'updateStatus'])->name('admin.pedidos.status');
+    Route::delete('/admin/pedidos/{id}', [PedidoController::class, 'destroy'])->name('admin.pedidos.destroy');
+
+    Route::get('/admin/usuarios', [UserController::class, 'index'])->name('admin.usuarios');
+    Route::post('/admin/usuarios', [UserController::class, 'store'])->name('admin.usuarios.store');
+    Route::put('/admin/usuarios/{id}', [UserController::class, 'update'])->name('admin.usuarios.update');
+    Route::patch('/admin/usuarios/{id}/toggle', [UserController::class, 'toggleActive'])->name('admin.usuarios.toggle');
+    Route::delete('/admin/usuarios/{id}', [UserController::class, 'destroy'])->name('admin.usuarios.destroy');
+
+    Route::get('/admin/reportes', [ReporteController::class, 'index'])->name('admin.reportes');
+    Route::get('/admin/reportes/pdf', [ReporteController::class, 'exportPdf'])->name('admin.reportes.pdf');
+
+    Route::get('/admin/inventario', [InventarioController::class, 'index'])->name('admin.inventario');
+    Route::post('/admin/inventario/producto', [InventarioController::class, 'storeProduct'])->name('admin.inventario.product.store');
+    Route::post('/admin/inventario/movimiento/{id}', [InventarioController::class, 'registrarMovimiento'])->name('admin.inventario.movimiento.store');
+    Route::delete('/admin/inventario/producto/{id}', [InventarioController::class, 'destroyProduct'])->name('admin.inventario.product.destroy');
+
+    Route::get('/mesero/dashboard', [MeseroController::class, 'dashboard'])->name('mesero.dashboard');
+    Route::get('/mesero/menu', [MeseroController::class, 'menu'])->name('mesero.menu');
+    Route::post('/mesero/pedidos', [MeseroController::class, 'storePedido'])->name('mesero.pedidos.store');
+    Route::get('/mesero/mesas', [MeseroController::class, 'mesas'])->name('mesero.mesas');
+    Route::patch('/mesero/mesas/{id}/status', [MeseroController::class, 'updateMesaStatus'])->name('mesero.mesas.status');
+    Route::get('/mesero/pedidos', [MeseroController::class, 'pedidos'])->name('mesero.pedidos');
+    Route::patch('/mesero/pedidos/{id}/status', [MeseroController::class, 'updatePedidoStatus'])->name('mesero.pedidos.status');
+    Route::get('/mesero/reservas', [MeseroController::class, 'reservas'])->name('mesero.reservas');
+    Route::patch('/mesero/reservas/{id}/status', [MeseroController::class, 'updateReservaStatus'])->name('mesero.reservas.status');
+
+    Route::get('/cliente/dashboard', [ClienteController::class, 'dashboard'])->name('cliente.dashboard');
+    Route::get('/cliente/facturas', [ClienteController::class, 'facturas'])->name('cliente.facturas');
+    Route::get('/cliente/menu', [ClienteController::class, 'menu'])->name('cliente.menu');
+    Route::post('/cliente/pedidos', [ClienteController::class, 'storePedido'])->name('cliente.pedidos.store');
+    Route::get('/cliente/facturas/{id}/pdf', [ClienteController::class, 'descargarPdf'])->name('cliente.facturas.pdf');
+    Route::get('/cliente/reservas', [ClienteController::class, 'reservas'])->name('cliente.reservas');
+    Route::post('/cliente/reservas', [ClienteController::class, 'storeReserva'])->name('cliente.reservas.store');
+    Route::get('/cliente/pedidos', [ClienteController::class, 'pedidos'])->name('cliente.pedidos');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+require __DIR__.'/auth.php';
+```
+
+---
+
+## 2. Explicación Detallada de Cada Ruta
+
+### 1. Ruta de la Landing Page
+```php
+Route::get('/', function () { return view('welcome'); });
+```
+* **Método HTTP:** `GET`
+* **Acción:** Retorna directamente la vista pública `welcome.blade.php`.
+* **Para qué sirve:** Es la página de inicio que ve cualquier visitante. Contiene el carrusel del restaurante y el chatbot de asistencia.
+
+### 2. Enrutador Dinámico de Dashboard
+```php
+Route::get('/dashboard', function () { ... })->middleware(['auth', 'verified'])->name('dashboard');
+```
+* **Método HTTP:** `GET`
+* **Middlewares:** `auth` (debe estar logueado) y `verified` (correo verificado).
+* **Para qué sirve:** Es la ruta a la que Laravel redirige tras el login. Compara el rol del usuario autenticado (`auth()->user()->role->name`) y redirige:
+  * Si es `'Admin'` o `'Administrador'` -> redirige a la ruta `admin.dashboard`.
+  * Si es `'Mesero'` -> redirige a `mesero.dashboard`.
+  * En cualquier otro caso (por defecto, `'Cliente'`) -> redirige a `cliente.dashboard`.
+
+---
+
+### 3. Grupo Protegido (Administrador, Mesero, Cliente)
+Todas las siguientes rutas se encuentran dentro del grupo con middleware `['auth', 'verified']`.
+
+#### 📂 Rutas del Administrador (`/admin/...`)
+
+* **Dashboard de Admin:**
+  * `GET /admin/dashboard`: Muestra el panel con analíticas y métricas financieras de ventas.
+
+* **CRUD de Menú (Platos y Categorías):**
+  * `GET /admin/menu`: Llama a `MenuController@index`. Carga y lista todos los platos y categorías.
+  * `POST /admin/menu`: Llama a `MenuController@store`. Guarda un nuevo plato y sube su foto al servidor.
+  * `PUT /admin/menu/{id}`: Llama a `MenuController@update`. Modifica los datos de un plato (usa `{id}` como parámetro para saber cuál editar) y reemplaza su foto si se proporciona una nueva.
+  * `DELETE /admin/menu/{id}`: Llama a `MenuController@destroy`. Elimina el producto e invalida/borra su foto del disco local.
+
+* **CRUD de Mesas Físicas:**
+  * `GET /admin/mesas`: Carga y lista las mesas en el panel de administrador.
+  * `POST /admin/mesas`: Registra una nueva mesa física con su capacidad y estado inicial.
+  * `PUT /admin/mesas/{id}`: Actualiza capacidad o fuerza el estado de la mesa seleccionada.
+  * `DELETE /admin/mesas/{id}`: Elimina la mesa.
+
+* **Gestión de Reservas:**
+  * `GET /admin/reservas`: Lista de reservas de clientes.
+  * `PATCH /admin/reservas/{id}/status`: Permite al administrador cambiar el estado de la reserva (`Pendiente`, `Confirmada`, `Cancelada`). Se usa `PATCH` porque es una modificación parcial de un solo atributo.
+  * `DELETE /admin/reservas/{id}`: Cancela y elimina la reserva.
+
+* **Gestión y Auditoría de Pedidos:**
+  * `GET /admin/pedidos`: Lista general de pedidos tomados por meseros o solicitados por clientes.
+  * `PATCH /admin/pedidos/{id}/status`: Actualiza el estado de cocina (`En Espera`, `Entregado`).
+  * `DELETE /admin/pedidos/{id}`: Ejecuta la eliminación del pedido, aplicando la lógica en cascada controlada en PHP para borrar primero los detalles de factura y evitar fallos por restricción SQL.
+
+* **CRUD de Personal de Trabajo (Usuarios y Roles):**
+  * `GET /admin/usuarios`: Lista los empleados y sus roles asignados.
+  * `POST /admin/usuarios`: Registra un nuevo empleado (mesero, admin, etc.) cifrando su contraseña.
+  * `PUT /admin/usuarios/{id}`: Edita datos básicos o actualiza contraseña si se rellena.
+  * `PATCH /admin/usuarios/{id}/toggle`: Alterna el estado activo/inactivo del usuario para denegar el acceso.
+  * `DELETE /admin/usuarios/{id}`: Remueve al usuario (con protección para evitar que el admin actual se borre a sí mismo).
+
+* **Reportes y Gráficos Financieros:**
+  * `GET /admin/reportes`: Procesa e indexa ingresos, ticket promedio y categorías más vendidas.
+  * `GET /admin/reportes/pdf`: Genera e inicia la descarga del balance del mes en PDF.
+
+* **Gestión de Inventario y Existencias:**
+  * `GET /admin/inventario`: Carga y lista insumos y bitácora de movimientos.
+  * `POST /admin/inventario/producto`: Registra un producto de almacén con stock inicial.
+  * `POST /admin/inventario/movimiento/{id}`: Registra un movimiento manual de stock (Entrada/Salida) actualizando existencias.
+  * `DELETE /admin/inventario/producto/{id}`: Elimina el insumo.
+
+---
+
+#### 📂 Rutas del Mesero (`/mesero/...`)
+
+* **Dashboard de Mesas:**
+  * `GET /mesero/dashboard`: Monitor de mesas para ver cuáles están ocupadas o libres.
+* **Tomar Pedido:**
+  * `GET /mesero/menu`: Carta digital adaptada para agregar productos a la comanda física actual.
+  * `POST /mesero/pedidos`: Guarda la comanda, descuenta stock de inventario y genera factura pendiente automáticamente.
+* **Control de Salón:**
+  * `GET /mesero/mesas`: Detalle de consumos en mesa.
+  * `PATCH /mesero/mesas/{id}/status`: Actualiza el estatus de la mesa física (Ej: `'Cuenta'`).
+* **Bandeja de Cocina:**
+  * `GET /mesero/pedidos`: Lista de comandas divididas en bandejas según preparación.
+  * `PATCH /mesero/pedidos/{id}/status`: Despacha y entrega el pedido al cliente.
+* **Bandeja de Reservas:**
+  * `GET /mesero/reservas`: Muestra reservas agendadas.
+  * `PATCH /mesero/reservas/{id}/status`: Modifica el estatus de reservas.
+
+---
+
+#### 📂 Rutas del Cliente (`/cliente/...`)
+
+* **Dashboard del Cliente:**
+  * `GET /cliente/dashboard`: Carga estadísticas y línea de tiempo de reservas del cliente actual.
+* **Facturas:**
+  * `GET /cliente/facturas`: Listado de consumos históricos facturados a nombre del cliente.
+  * `GET /cliente/facturas/{id}/pdf`: Descarga la factura POS (tirilla térmica de 80mm de ancho) en formato PDF.
+* **Menú y Domicilio:**
+  * `GET /cliente/menu`: Carta interactiva con carrito de compras para delivery.
+  * `POST /cliente/pedidos`: Registra el pedido de tipo domicilio y genera la factura.
+* **Agenda de Reservaciones:**
+  * `GET /cliente/reservas`: Historial de reservas y selector de mesas.
+  * `POST /cliente/reservas`: Envía la reserva y crea un pedido representativo por $0.00 de respaldo para cumplir con las relaciones.
+* **Mis Pedidos:**
+  * `GET /cliente/pedidos`: Consulta el estado de preparación en tiempo real de sus pedidos a domicilio.

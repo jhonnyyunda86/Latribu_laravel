@@ -1,36 +1,106 @@
-# Rutas de Autenticación (auth.php)
+# Explicación Detallada del Archivo de Rutas: auth.php
 
-**Ubicación:** `routes/auth.php`
+**Ruta física:** `routes/auth.php`
 
-## Descripción
-Este archivo define el flujo de autenticación y seguridad provisto por Laravel Breeze. Las rutas están organizadas mediante middleware para diferenciar entre invitados (usuarios no logueados) y usuarios autenticados.
+Este archivo contiene la declaración de las rutas HTTP dedicadas al subsistema de autenticación y verificación de credenciales del software (impulsado por Laravel Breeze). Controla los flujos de registro, inicio de sesión, cambio de claves y cierres de sesión.
 
-## Rutas Definidas
+---
 
-### 1. Para Invitados (Middleware: `guest`)
-Rutas accesibles únicamente para usuarios que no han iniciado sesión:
-* **Registro de Usuarios:**
-  * `GET /register`: Muestra el formulario de registro (`RegisteredUserController@create`).
-  * `POST /register`: Procesa el registro y crea el usuario en base de datos (`RegisteredUserController@store`).
-* **Inicio de Sesión:**
-  * `GET /login`: Muestra la pantalla de login (`AuthenticatedSessionController@create`).
-  * `POST /login`: Autentica al usuario en el sistema (`AuthenticatedSessionController@store`).
-* **Recuperación de Contraseña:**
-  * `GET /forgot-password`: Muestra el formulario para solicitar enlace de restablecimiento (`PasswordResetLinkController@create`).
-  * `POST /forgot-password`: Envía el correo electrónico de recuperación (`PasswordResetLinkController@store`).
-  * `GET /reset-password/{token}`: Muestra la pantalla de cambio de clave (`NewPasswordController@create`).
-  * `POST /reset-password`: Registra la nueva contraseña (`NewPasswordController@store`).
+## 1. Código Fuente Completo
 
-### 2. Para Usuarios Autenticados (Middleware: `auth`)
-Rutas de seguridad que requieren que el usuario esté logueado:
-* **Verificación de Email:**
-  * `GET /verify-email`: Notificación de verificación de correo (`EmailVerificationPromptController`).
-  * `GET /verify-email/{id}/{hash}`: Enlace firmado para verificar la cuenta (`VerifyEmailController`).
-  * `POST /email/verification-notification`: Reenvía el correo de verificación (`EmailVerificationNotificationController@store`).
-* **Confirmación de Clave (Acciones Sensibles):**
-  * `GET /confirm-password`: Solicita confirmar clave actual (`ConfirmablePasswordController@show`).
-  * `POST /confirm-password`: Valida la contraseña (`ConfirmablePasswordController@store`).
+```php
+<?php
+
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\ConfirmablePasswordController;
+use App\Http\Controllers\Auth\EmailVerificationNotificationController;
+use App\Http\Controllers\Auth\EmailVerificationPromptController;
+use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\PasswordController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\VerifyEmailController;
+use Illuminate\Support\Facades\Route;
+
+Route::middleware('guest')->group(function () {
+    Route::get('register', [RegisteredUserController::class, 'create'])
+        ->name('register');
+
+    Route::post('register', [RegisteredUserController::class, 'store']);
+
+    Route::get('login', [AuthenticatedSessionController::class, 'create'])
+        ->name('login');
+
+    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+
+    Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
+        ->name('password.request');
+
+    Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
+        ->name('password.email');
+
+    Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])
+        ->name('password.reset');
+
+    Route::post('reset-password', [NewPasswordController::class, 'store'])
+        ->name('password.store');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('verify-email', EmailVerificationPromptController::class)
+        ->name('verification.notice');
+
+    Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('verification.verify');
+
+    Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
+        ->middleware('throttle:6,1')
+        ->name('verification.send');
+
+    Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])
+        ->name('password.confirm');
+
+    Route::post('confirm-password', [ConfirmablePasswordController::class, 'store']);
+
+    Route::put('password', [PasswordController::class, 'update'])->name('password.update');
+
+    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
+        ->name('logout');
+});
+```
+
+---
+
+## 2. Explicación Detallada de Cada Ruta
+
+### 1. Grupo para Invitados (Middleware: `guest`)
+Este middleware encapsula las rutas que solo deben ser accedidas por usuarios no autenticados en el sistema (visitantes externos).
+
+* **Registro de Usuarios Nuevos:**
+  * `GET /register`: Invoca `RegisteredUserController@create`. Muestra el formulario web para que un nuevo cliente cree una cuenta en el restaurante.
+  * `POST /register`: Invoca `RegisteredUserController@store`. Valida y guarda el nuevo usuario asignándole el rol por defecto de cliente, iniciando sesión de forma automática.
+* **Inicio de Sesión (Login):**
+  * `GET /login`: Invoca `AuthenticatedSessionController@create`. Renderiza la pantalla de login con campos de correo y contraseña.
+  * `POST /login`: Invoca `AuthenticatedSessionController@store`. Valida credenciales, regenera la sesión en el servidor para evitar secuestros y redirecciona al `/dashboard` dinámico.
+* **Recuperación de Contraseña Olvidada:**
+  * `GET /forgot-password`: Muestra la pantalla para ingresar el correo electrónico.
+  * `POST /forgot-password`: Genera un token único y envía un enlace seguro de restablecimiento por email.
+  * `GET /reset-password/{token}`: Captura el token enviado por correo y muestra el formulario para escribir la nueva clave.
+  * `POST /reset-password`: Valida el token contra la base de datos y actualiza la contraseña del usuario de forma encriptada.
+
+---
+
+### 2. Grupo para Usuarios Autenticados (Middleware: `auth`)
+Contiene rutas privadas que requieren que el cliente, mesero o administrador tenga una sesión de navegación activa en el servidor.
+
+* **Verificación de Correo Electrónico:**
+  * `GET /verify-email`: Muestra la indicación en pantalla si el correo aún no ha sido confirmado.
+  * `GET /verify-email/{id}/{hash}`: Enlace firmado (`middleware: signed`) que procesa la validación del correo del usuario.
+* **Confirmación Intermedia de Contraseña:**
+  * `GET /confirm-password`: Solicita reingresar la contraseña antes de permitir acceder a secciones altamente críticas.
 * **Actualización de Seguridad:**
-  * `PUT /password`: Cambia la contraseña desde la configuración de perfil (`PasswordController@update`).
-* **Cerrar Sesión:**
-  * `POST /logout`: Finaliza e invalida la sesión del usuario (`AuthenticatedSessionController@destroy`), destruyendo el token de sesión en servidor y redirigiendo a `/`.
+  * `PUT /password`: Cambia y actualiza la contraseña del usuario logueado en su perfil de manera encriptada.
+* **Cierre de Sesión (Logout):**
+  * `POST /logout`: Llama a `AuthenticatedSessionController@destroy`.
+    * **¿Qué hace en detalle?** Ejecuta el logout de la sesión web en el servidor, destruye los datos de la sesión actual en el almacenamiento (`session()->invalidate()`) y regenera el token CSRF (`session()->regenerateToken()`) para máxima seguridad, impidiendo ataques de robo de sesión y redireccionando de vuelta a la página principal `/`.
