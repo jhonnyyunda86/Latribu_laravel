@@ -11,9 +11,11 @@ use App\Http\Controllers\Admin\InventarioController;
 use App\Http\Controllers\MeseroController;
 use App\Http\Controllers\ClienteController;
 use Illuminate\Support\Facades\Route;
+use App\Models\Producto;
 
 Route::get('/', function () {
-    return view('welcome');
+    $productos = Producto::where('disponible', true)->take(6)->get();
+    return view('welcome', compact('productos'));
 });
 
 Route::get('/dashboard', function () {

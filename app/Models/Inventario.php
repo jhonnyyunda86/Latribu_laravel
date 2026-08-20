@@ -5,9 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Inventario extends Model
+class Inventario extends Model 
 {
-    protected $table = 'inventarios';
+    protected $table = 'Inventarios';
 
     protected $fillable = ['nombre', 'descripcion', 'activo'];
 

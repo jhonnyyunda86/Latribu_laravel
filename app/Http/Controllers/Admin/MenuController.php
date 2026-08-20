@@ -80,6 +80,21 @@ class MenuController extends Controller
     {
         $producto = Producto::findOrFail($id);
         
+        // Verificar si existen relaciones que impidan el borrado físico (por ej. pedidos, facturas o movimientos)
+        $hasRelations = $producto->detallesPedido()->exists() || 
+                        $producto->detallesFactura()->exists() || 
+                        \App\Models\MovimientoInventario::where('producto_id', $producto->id)->exists();
+
+        if ($hasRelations) {
+            // En vez de eliminar físicamente, marcamos como no disponible
+            $producto->update([
+                'disponible' => false,
+                'stock' => 0
+            ]);
+
+            return redirect()->back()->with('success', 'El producto tiene historial de ventas o movimientos de inventario. Se ha marcado como NO disponible en el menú en lugar de eliminarse.');
+        }
+
         // Eliminar imagen local física si existe
         if ($producto->imagen && !str_starts_with($producto->imagen, 'http') && file_exists(public_path($producto->imagen))) {
             @unlink(public_path($producto->imagen));

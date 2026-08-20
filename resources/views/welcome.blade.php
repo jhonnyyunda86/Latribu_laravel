@@ -248,37 +248,197 @@
                 <div class="w-12 h-[1px] bg-tribu-gold mx-auto mt-4"></div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-                <!-- Hamburguesa Tribal -->
-                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition duration-300 border border-gray-100 group">
-                    <div class="h-72 overflow-hidden relative">
-                        <img src="{{ asset('images/hamburguesa_tribal.png') }}" alt="Hamburguesa Tribal" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
-                    </div>
-                    <div class="p-8 space-y-3">
-                        <h3 class="text-xl font-bold font-serif text-tribu-dark">Hamburguesa Tribal</h3>
-                        <p class="text-[#5c4938] text-sm leading-relaxed font-light">Carne jugosa, vegetales frescos y salsa especial de la casa.</p>
-                    </div>
-                </div>
+            @php
+                $hasProducts = isset($productos) && $productos->isNotEmpty();
+                $count = $hasProducts ? $productos->count() : 3;
+            @endphp
 
-                <!-- Pizza Artesanal -->
-                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition duration-300 border border-gray-100 group">
-                    <div class="h-72 overflow-hidden relative">
-                        <img src="{{ asset('images/pizza_artesanal.png') }}" alt="Pizza Artesanal" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
-                    </div>
-                    <div class="p-8 space-y-3">
-                        <h3 class="text-xl font-bold font-serif text-tribu-dark">Pizza Artesanal</h3>
-                        <p class="text-[#5c4938] text-sm leading-relaxed font-light">Masa crocante, queso fundido e ingredientes seleccionados.</p>
-                    </div>
-                </div>
+            <div x-data="{ 
+                currentIndex: 0,
+                totalItems: {{ $count }},
+                getItemsPerPage() {
+                    if (window.innerWidth >= 1024) return 3;
+                    if (window.innerWidth >= 768) return 2;
+                    return 1;
+                },
+                maxIndex() {
+                    return Math.max(0, this.totalItems - this.getItemsPerPage());
+                },
+                next() {
+                    this.currentIndex = this.currentIndex < this.maxIndex() ? this.currentIndex + 1 : 0;
+                },
+                prev() {
+                    this.currentIndex = this.currentIndex > 0 ? this.currentIndex - 1 : this.maxIndex();
+                }
+            }" x-init="window.addEventListener('resize', () => { if(currentIndex > maxIndex()) currentIndex = maxIndex(); })"
+            class="relative px-2 sm:px-12 group/carousel">
+                
+                <!-- Botón Izquierdo -->
+                <button @click="prev()" 
+                        x-show="maxIndex() > 0"
+                        class="absolute left-0 md:left-2 top-1/2 -translate-y-1/2 z-20 text-tribu-darkBg hover:text-white bg-white hover:bg-tribu-gold w-10 h-10 rounded-full shadow-lg border border-gray-150 flex items-center justify-center transition-all duration-300 transform active:scale-95 focus:outline-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
 
-                <!-- Plato Especial -->
-                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition duration-300 border border-gray-100 group">
-                    <div class="h-72 overflow-hidden relative">
-                        <img src="{{ asset('images/plato_especial.png') }}" alt="Plato Especial" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
-                    </div>
-                    <div class="p-8 space-y-3">
-                        <h3 class="text-xl font-bold font-serif text-tribu-dark">Plato Especial</h3>
-                        <p class="text-[#5c4938] text-sm leading-relaxed font-light">Una combinación deliciosa para compartir en familia.</p>
+                <!-- Botón Derecho -->
+                <button @click="next()" 
+                        x-show="maxIndex() > 0"
+                        class="absolute right-0 md:right-2 top-1/2 -translate-y-1/2 z-20 text-tribu-darkBg hover:text-white bg-white hover:bg-tribu-gold w-10 h-10 rounded-full shadow-lg border border-gray-150 flex items-center justify-center transition-all duration-300 transform active:scale-95 focus:outline-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+
+                <!-- Contenedor del Carrusel -->
+                <div class="overflow-hidden py-4">
+                    <div class="flex -mx-4 transition-transform duration-500 ease-in-out" 
+                         :style="`transform: translateX(-${currentIndex * (100 / totalItems)}%);` style_modifications">
+                        @if($hasProducts)
+                            @foreach($productos as $producto)
+                                <div class="w-full md:w-1/2 lg:w-1/3 px-4 shrink-0 flex flex-col">
+                                    <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition duration-300 border border-gray-100 flex flex-col justify-between h-full group">
+                                        <div>
+                                            <div class="h-64 overflow-hidden relative flex items-center justify-center bg-[#FAF4EB]/20">
+                                                @if($producto->imagen)
+                                                    <img src="{{ $producto->imagen }}" alt="{{ $producto->nombre }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
+                                                @else
+                                                    <div class="flex flex-col items-center justify-center text-gray-400 p-4">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-tribu-gold/40 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                                        </svg>
+                                                        <span class="text-xs uppercase font-bold tracking-widest text-[#2c1d11]/40">La Tribu</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <div class="p-6 space-y-2">
+                                                @if($producto->categoria)
+                                                    <span class="text-[9px] uppercase tracking-widest text-tribu-gold font-bold block leading-none">{{ $producto->categoria->nombre }}</span>
+                                                @endif
+                                                <h3 class="text-lg font-bold font-serif text-tribu-dark leading-tight">{{ $producto->nombre }}</h3>
+                                                <p class="text-[#5c4938] text-xs leading-relaxed font-light line-clamp-2">{{ $producto->descripcion ?? 'Delicioso plato preparado con la receta original de la casa.' }}</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="px-6 pb-6 pt-2 bg-gray-50/30 border-t border-gray-100/50 flex flex-col gap-3">
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    <span class="text-[9px] text-gray-400 block uppercase tracking-wider font-semibold">Precio</span>
+                                                    <span class="text-base font-bold font-mono text-tribu-darkBg">${{ number_format($producto->precio, 0, ',', '.') }}</span>
+                                                </div>
+                                                @if($producto->stock !== null)
+                                                    <div class="text-right">
+                                                        <span class="text-[9px] text-gray-400 block uppercase tracking-wider font-semibold">Disponibles</span>
+                                                        <span class="text-xs font-bold font-mono text-gray-700">{{ $producto->stock }} uds</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            
+                                            @guest
+                                                <a href="{{ route('login') }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-tribu-gold hover:bg-yellow-600 text-tribu-darkBg font-sans font-bold text-xs uppercase tracking-widest rounded-xl transition shadow-md">
+                                                    Comprar ahora
+                                                </a>
+                                            @else
+                                                @php
+                                                    $role = auth()->user()->role?->name;
+                                                @endphp
+                                                @if(in_array($role, ['Admin', 'Administrador', 'Mesero']))
+                                                    <a href="{{ url('/dashboard') }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-tribu-darkBg hover:bg-black text-white font-sans font-bold text-xs uppercase tracking-widest rounded-xl transition shadow-md border border-tribu-gold/20">
+                                                        Ir al Panel
+                                                    </a>
+                                                @else
+                                                    <a href="{{ route('cliente.menu') }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-tribu-gold hover:bg-yellow-600 text-tribu-darkBg font-sans font-bold text-xs uppercase tracking-widest rounded-xl transition shadow-md">
+                                                        Pedir ahora
+                                                    </a>
+                                                @endif
+                                            @endguest
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @else
+                            <!-- Fallback: Hamburguesa Tribal -->
+                            <div class="w-full md:w-1/2 lg:w-1/3 px-4 shrink-0 flex flex-col">
+                                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition duration-300 border border-gray-100 flex flex-col justify-between h-full group">
+                                    <div>
+                                        <div class="h-64 overflow-hidden relative">
+                                            <img src="{{ asset('images/hamburguesa_tribal.png') }}" alt="Hamburguesa Tribal" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
+                                        </div>
+                                        <div class="p-6 space-y-2">
+                                            <span class="text-[9px] uppercase tracking-widest text-tribu-gold font-bold block leading-none">Hamburguesas</span>
+                                            <h3 class="text-lg font-bold font-serif text-tribu-dark leading-tight">Hamburguesa Tribal</h3>
+                                            <p class="text-[#5c4938] text-xs leading-relaxed font-light line-clamp-2">Carne jugosa, vegetales frescos y salsa especial de la casa.</p>
+                                        </div>
+                                    </div>
+                                    <div class="px-6 pb-6 pt-2 bg-gray-50/30 border-t border-gray-100/50 flex flex-col gap-3">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <span class="text-[9px] text-gray-400 block uppercase tracking-wider font-semibold">Precio</span>
+                                                <span class="text-base font-bold font-mono text-tribu-darkBg">$25.000</span>
+                                            </div>
+                                        </div>
+                                        <a href="{{ route('login') }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-tribu-gold hover:bg-yellow-600 text-tribu-darkBg font-sans font-bold text-xs uppercase tracking-widest rounded-xl transition shadow-md">
+                                            Comprar ahora
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Fallback: Pizza Artesanal -->
+                            <div class="w-full md:w-1/2 lg:w-1/3 px-4 shrink-0 flex flex-col">
+                                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition duration-300 border border-gray-100 flex flex-col justify-between h-full group">
+                                    <div>
+                                        <div class="h-64 overflow-hidden relative">
+                                            <img src="{{ asset('images/pizza_artesanal.png') }}" alt="Pizza Artesanal" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
+                                        </div>
+                                        <div class="p-6 space-y-2">
+                                            <span class="text-[9px] uppercase tracking-widest text-tribu-gold font-bold block leading-none">Pizzas</span>
+                                            <h3 class="text-lg font-bold font-serif text-tribu-dark leading-tight">Pizza Artesanal</h3>
+                                            <p class="text-[#5c4938] text-xs leading-relaxed font-light line-clamp-2">Masa crocante, queso fundido e ingredientes seleccionados.</p>
+                                        </div>
+                                    </div>
+                                    <div class="px-6 pb-6 pt-2 bg-gray-50/30 border-t border-gray-100/50 flex flex-col gap-3">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <span class="text-[9px] text-gray-400 block uppercase tracking-wider font-semibold">Precio</span>
+                                                <span class="text-base font-bold font-mono text-tribu-darkBg">$30.000</span>
+                                            </div>
+                                        </div>
+                                        <a href="{{ route('login') }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-tribu-gold hover:bg-yellow-600 text-tribu-darkBg font-sans font-bold text-xs uppercase tracking-widest rounded-xl transition shadow-md">
+                                            Comprar ahora
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Fallback: Plato Especial -->
+                            <div class="w-full md:w-1/2 lg:w-1/3 px-4 shrink-0 flex flex-col">
+                                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition duration-300 border border-gray-100 flex flex-col justify-between h-full group">
+                                    <div>
+                                        <div class="h-64 overflow-hidden relative">
+                                            <img src="{{ asset('images/plato_especial.png') }}" alt="Plato Especial" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
+                                        </div>
+                                        <div class="p-6 space-y-2">
+                                            <span class="text-[9px] uppercase tracking-widest text-tribu-gold font-bold block leading-none">Especialidades</span>
+                                            <h3 class="text-lg font-bold font-serif text-tribu-dark leading-tight">Plato Especial</h3>
+                                            <p class="text-[#5c4938] text-xs leading-relaxed font-light line-clamp-2">Una combinación deliciosa para compartir en familia.</p>
+                                        </div>
+                                    </div>
+                                    <div class="px-6 pb-6 pt-2 bg-gray-50/30 border-t border-gray-100/50 flex flex-col gap-3">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <span class="text-[9px] text-gray-400 block uppercase tracking-wider font-semibold">Precio</span>
+                                                <span class="text-base font-bold font-mono text-tribu-darkBg">$45.000</span>
+                                            </div>
+                                        </div>
+                                        <a href="{{ route('login') }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-tribu-gold hover:bg-yellow-600 text-tribu-darkBg font-sans font-bold text-xs uppercase tracking-widest rounded-xl transition shadow-md">
+                                            Comprar ahora
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
